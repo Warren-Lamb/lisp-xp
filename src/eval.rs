@@ -2,23 +2,73 @@ use std::collections::HashMap;
 use std::fmt;
 
 enum Value {
-	Number(I64),
-	Callable(Callable),
-	Nil
+    Number(I64),
+    Callable(Callable),
+    Nil,
 }
 
-impl Value{
-	fn is_truthy(&self) -> bool{
-		use Value::*;
-		match *self {
-			Number(n) => n !=0,
-			_ => true, 
-		} 
-	}
-	fn into_num(self) -> i64{
-		match self {
-			Value::Number(n) => n,
-			other => panic!("{:?} Not a number", other),
-		}
-	} 
+#[derive(Debug, PartialEq, Copy, Clone)]
+impl Value {
+    fn is_truthy(&self) -> bool {
+        use Value::*;
+        match *self {
+            Number(n) => n != 0,
+            _ => true,
+        }
+    }
+    fn into_num(self) -> i64 {
+        match self {
+            Value::Number(n) => n,
+            other => panic!("{:?} Not a number", other),
+        }
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Value::Number(n) => write!(f, "Number is {}", n),
+            Value::Callable(c) => write!(f, "The callable fn is {:x?}", c),
+            Value::Nil => write!(f, "Nil"),
+        }
+    }
+}
+
+type Callable = fn(Vec<Value>) -> EvalResult;
+pub type EvalResult = Result<Value, EvalError>;
+
+#[derive(Debug, PartialEq)]
+pub struct EvalError(String);
+
+impl fmt::Display for EvalError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "Error: {}", self.0);
+    }
+}
+
+pub fn eval(expr: ast::Expr) -> EvalResult {
+    eval_with_global_env(expr, &mut make_global_env());
+}
+
+pub fn eval_with_global_env(expr: ast::Expr, env: &mut HashMap<String, Value>) -> EvalResult {
+    use ast::Expr::*;
+    match expr {
+        Symbol(_, s) => env
+            .get(&s)
+            .cloned()
+            .ok_or_else(|| (format!("undefined symbol {}", s))),
+        Number(_, n) => Ok(Value::Number(n)),
+        If(_, _, cond, then, elz, _) => Ok(if eval_with_global_env(*cond, env)?.is_truthy() {
+            eval_with_global_env(*then, env)?
+        } else {
+            eval_with_global_env(*elz, env)?
+        }),
+        Define(_, _, sym, value, _) => {
+            let sym = to_sym(sym)?;
+            let value = eval_with_global_env(*value, env)?;
+            env.insert(sym, value.clone());
+
+            Ok(value)
+        }
+    }
 }
