@@ -70,5 +70,15 @@ pub fn eval_with_global_env(expr: ast::Expr, env: &mut HashMap<String, Value>) -
 
             Ok(value)
         }
+        Call(_,sym,args,_)=>{
+            let sym = sym.to_sym()?;
+            match env.get(&sym){
+                Some(Value.Callable(c)=> c(args.into_iter()
+                    .map(|a| eval_with_global_env(a,env)?)
+                    .collect::<Result<Vec<_>,_>>()?),
+                 _ => Err(EvalError(format!("invalid fn :{}", sym))),
+             }
+
+        } 
     }
 }
