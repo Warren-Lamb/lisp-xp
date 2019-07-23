@@ -1,3 +1,4 @@
+use super::ast;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -70,15 +71,21 @@ pub fn eval_with_global_env(expr: ast::Expr, env: &mut HashMap<String, Value>) -
 
             Ok(value)
         }
-        Call(_,sym,args,_)=>{
+        Call(_, sym, args, _) => {
             let sym = sym.to_sym()?;
-            match env.get(&sym){
-                Some(Value.Callable(c)=> c(args.into_iter()
-                    .map(|a| eval_with_global_env(a,env)?)
-                    .collect::<Result<Vec<_>,_>>()?),
-                 _ => Err(EvalError(format!("invalid fn :{}", sym))),
-             }
-
-        } 
+            match env.get(&sym) {
+                Some(Value::Callable(c)) => c(args
+                    .into_iter()
+                    .map(|a| eval_with_global_env(a, env)?)
+                    .collect::<Result<Vec<_>, _>>()?),
+                _ => Err(EvalError(format!("invalid fn :{}", sym))),
+            }
+        }
+    }
+}
+fn to_sym(token: ast::Token) -> Result<String, EvalError> {
+    match token.kind {
+        ast::TokenKind::Symbol(s) => Ok(s),
+        other => Err(EvalError(format!("Token {:?} not a symbol", other))),
     }
 }
