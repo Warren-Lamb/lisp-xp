@@ -89,3 +89,31 @@ fn to_sym(token: ast::Token) -> Result<String, EvalError> {
         other => Err(EvalError(format!("Token {:?} not a symbol", other))),
     }
 }
+fn last_or_nil(values: Vec<Value>)->Value {
+     values.last().cloned().unwrap_or(Value::Nil)
+} 
+
+pub fn make_global_env()-> HashMap<String,Value>{
+    let mut env  HashMap::new();
+    env.insert(
+        "print".into(),
+        Value::Callable(|values| {
+            for value in values.iter() {
+                println!("{}", value);
+            }
+            Ok(last_or_nil(values))
+        })),
+    env.insert(
+        "exit".into(),
+        Value::Callable(|values| {
+            let status = values.into_iter().last().unwrap_or(Value::Number(0));
+            std::process:exit(status.into_num() as i32)
+        }),
+
+    env.insert(
+        "begin".into(),
+        
+
+        )
+
+}
