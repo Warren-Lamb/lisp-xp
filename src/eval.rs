@@ -142,4 +142,19 @@ pub fn make_global_env() -> HashMap<String, Value> {
         "*".into(),
         Value::Callable(|values| Ok(Value::Number(values.iter().map(|n| n.into_num()).product()))),
     );
+
+    env.insert(
+        "/".into(),
+        Ok(Value::Callable(|values| {
+            if let Some((first, rest)) = values.split_first() {
+                if rest.len() == 0 {
+                    Value::Number(1 / first)
+                } else {
+                    value::Number(values.iter().fold(first, |acc, n| acc / n.into_num()))
+                }
+            } else {
+                Err(EvalError("Invalid num of args".into()))
+            }
+        })),
+    );
 }
