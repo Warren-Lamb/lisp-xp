@@ -2,13 +2,13 @@ use super::ast;
 use std::collections::HashMap;
 use std::fmt;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 enum Value {
     Number(I64),
     Callable(Callable),
     Nil,
 }
 
-#[derive(Debug, PartialEq, Copy, Clone)]
 impl Value {
     fn is_truthy(&self) -> bool {
         use Value::*;
