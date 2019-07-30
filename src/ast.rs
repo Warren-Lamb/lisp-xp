@@ -1,6 +1,5 @@
 use codespan::*;
 
-
 #[derive(PartialEq,Debug)]
 pub struct Token {
 	pub kind : TokenKind,
